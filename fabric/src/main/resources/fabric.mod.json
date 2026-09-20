@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "id": "cobblemonsizevariation",
   "version": "${version}",
-  "name": "CobblemonSizeVariation",
-  "description": "A mod that makes cobblemon spawn in different sizes",
+  "name": "Cobblemon Size Variations (Server)",
+  "description": "Server-only size variation for Cobblemon 1.7.3; clients need only the normal modpack.",
   "authors": [
     "Cudzer"
   ],
@@ -11,27 +11,18 @@
     "homepage": ""
   },
   "license": "All-Rights-Reserved",
-  "icon": "assets/cobblemonsizevariation/icon.png",
-  "environment": "*",
+  "environment": "server",
   "entrypoints": {
     "main": [
       "dev.cudzer.cobblemonsizevariation.fabric.CobblemonSizeVariationFabric"
-    ],
-    "client": [
-      "dev.cudzer.cobblemonsizevariation.fabric.client.CobblemonSizeVariationFabricClient"
     ]
   },
-  "mixins": [
-    "cobblemonsizevariation.mixins.json"
-  ],
   "depends": {
     "fabricloader": ">=0.16.10",
     "minecraft": "~1.21.1",
     "java": ">=21",
-    "architectury": ">=13.0.8",
-    "fabric-api": "*"
-  },
-  "suggests": {
-    "another-mod": "*"
+    "fabric-api": "*",
+    "cobblemon": "~1.7.3",
+    "fabric-language-kotlin": "*"
   }
 }

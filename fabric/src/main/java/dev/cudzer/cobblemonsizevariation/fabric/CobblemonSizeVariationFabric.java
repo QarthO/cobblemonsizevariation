@@ -1,40 +1,30 @@
 package dev.cudzer.cobblemonsizevariation.fabric;
 
-import com.cobblemon.mod.common.NetworkManager;
 import dev.cudzer.cobblemonsizevariation.CobblemonSizeVariation;
 import dev.cudzer.cobblemonsizevariation.Platform;
-import dev.cudzer.cobblemonsizevariation.fabric.events.EntityInteractEvents;
+import dev.cudzer.cobblemonsizevariation.data.CustomSizeDataManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.loader.api.FabricLoader;
-
+import net.minecraft.server.packs.PackType;
 import java.nio.file.Path;
 
 public final class CobblemonSizeVariationFabric implements ModInitializer, Platform {
-
-    ModFabricNetworkManager networkManager = new ModFabricNetworkManager();
-
     @Override
     public void onInitialize() {
-        // Run our common setup.
         CobblemonSizeVariation.init(this);
-        networkManager.registerMessages();
-        EntityInteractEvents.register();
-
-        CommandRegistrationCallback.EVENT.register(((commandDispatcher, commandBuildContext, commandSelection) ->
-                CobblemonSizeVariation.registerCommands(commandDispatcher)));
+        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new CustomSizeDataManager());
+        CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) ->
+                CobblemonSizeVariation.registerCommands(dispatcher));
+        CobblemonSizeVariation.LOGGER.info("Server-only sizing enabled; no addon items or custom client packets registered");
     }
 
-    @Override
-    public NetworkManager getNetworkManager(){
-        return networkManager;
-    }
-
-    public boolean isModInstalled(String modId){
+    public boolean isModInstalled(String modId) {
         return FabricLoader.getInstance().isModLoaded(modId);
     }
 
-    public Path getConfigDirectory(){
+    public Path getConfigDirectory() {
         return FabricLoader.getInstance().getConfigDir();
     }
 }

@@ -25,38 +25,22 @@ public class BasicSizer implements ISizer{
         this.sizeDefinition = sizeDefinition;
         minSizeModifier = Float.parseFloat(this.sizeDefinition.getMinSizeModifier());
         maxSizeModifier = Float.parseFloat(this.sizeDefinition.getMaxSizeModifier());
+        dev.cudzer.cobblemonsizevariation.sizing.SizeAssignment.validateRange(minSizeModifier, maxSizeModifier);
     }
 
     @Override
     public float getSize() {
-        float result = 0;
-        if(ModConfig.biasSizeTowardAverage){
-            for(int i = 0; i < 3; i++){
-                result += RNG.nextFloat() * (((maxSizeModifier - minSizeModifier) + minSizeModifier) / 3);
-            }
-        }
-        else{
-            result = RNG.nextFloat() * (
-                    maxSizeModifier - minSizeModifier)
-                    + minSizeModifier;
-        }
-        return result;
+        return getSize(minSizeModifier, maxSizeModifier);
     }
 
     @Override
-    public float getSize(float min, float max){
-        float result = 0;
-        if(ModConfig.biasSizeTowardAverage){
-            for(int i = 0; i < 3; i++){
-                result += RNG.nextFloat() * (((max - min) + min) / 3);
-            }
+    public float getSize(float min, float max) {
+        dev.cudzer.cobblemonsizevariation.sizing.SizeAssignment.validateRange(min, max);
+        double unit = RNG.nextFloat();
+        if (ModConfig.biasSizeTowardAverage) {
+            unit = (unit + RNG.nextFloat() + RNG.nextFloat()) / 3.0;
         }
-        else{
-            result = RNG.nextFloat() * (
-                    max - min)
-                    + min;
-        }
-        return result;
+        return (float) (min + unit * (max - min));
     }
 
     @Override

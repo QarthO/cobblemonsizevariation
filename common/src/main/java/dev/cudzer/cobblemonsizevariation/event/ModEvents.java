@@ -13,12 +13,11 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import dev.cudzer.cobblemonsizevariation.CobblemonSizeVariation;
 import dev.cudzer.cobblemonsizevariation.config.ModConfig;
 import dev.cudzer.cobblemonsizevariation.data.CustomSizeDataManager;
-import dev.cudzer.cobblemonsizevariation.network.SizeChangedPacket;
+import dev.cudzer.cobblemonsizevariation.sizing.ServerSizeService;
+import dev.cudzer.cobblemonsizevariation.sizing.SizeAssignment;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.server.level.ServerPlayer;
 
-import java.util.Objects;
 import java.util.Random;
 
 public class ModEvents {
@@ -34,11 +33,11 @@ public class ModEvents {
     }
 
     private static void onCobblemonSpawn(SpawnEvent<PokemonEntity> event){
-        resizer(event.getEntity().getPokemon(), null, false);
+        resizer(event.getEntity().getPokemon());
     }
 
     private static void onSnackSpawn(PokeSnackSpawnPokemonEvent.Post event){
-        resizer(event.getPokemonEntity().getPokemon(), null, false);
+        resizer(event.getPokemonEntity().getPokemon());
     }
 
     private static void onShoulderMount(ShoulderMountEvent event){
@@ -70,33 +69,27 @@ public class ModEvents {
     }
 
     private static void onStarterChosen(StarterChosenEvent event){
-        resizer(event.getPokemon(), event.getPlayer(), false);
+        resizer(event.getPokemon());
     }
 
     private static void onFossilRevived(FossilRevivedEvent event){
-        resizer(event.getPokemon(), event.getPlayer(), true);
+        resizer(event.getPokemon());
     }
 
-    private static boolean canModifySize(){
-        return random.nextFloat() < ModConfig.sizeModificationChance;
-    }
-
-    private static void resizer(Pokemon pokemon, ServerPlayer player, boolean requireClientUpdate){
-        if(canModifySize()){
-            double sizeModifier;
+    private static void resizer(Pokemon pokemon) {
+        boolean assigned = pokemon.getPersistentData().getBoolean(ServerSizeService.ASSIGNED_KEY);
+        if (assigned) {
+            return;
+        }
+        if (SizeAssignment.shouldRandomize(false, pokemon.getScaleModifier(),
+                ModConfig.sizeModificationChance, random.nextFloat())) {
             var customSize = CustomSizeDataManager.getCustomSizeFile(pokemon.getSpecies());
-            if(customSize == null){
-                sizeModifier = CobblemonSizeVariation.SIZER.getSize();
-                pokemon.setScaleModifier((float)sizeModifier);
-            }
-            else{
-                //use the sizes defined in the custom file, not the actual sizer
-                sizeModifier = CobblemonSizeVariation.SIZER.getSize(customSize.getMinSize(), customSize.getMaxSize());
-                pokemon.setScaleModifier((float)sizeModifier);
-            }
-            if(requireClientUpdate){
-                CobblemonSizeVariation.platform.getNetworkManager().sendPacketToPlayer(Objects.requireNonNull(player), new SizeChangedPacket(() -> pokemon, sizeModifier));
-            }
+            float size = customSize == null ? CobblemonSizeVariation.SIZER.getSize()
+                    : CobblemonSizeVariation.SIZER.getSize(customSize.getMinSize(), customSize.getMaxSize());
+            ServerSizeService.setSize(pokemon, size);
+        } else {
+            // Record a failed chance roll too; later spawn callbacks must not retry it.
+            ServerSizeService.markAssigned(pokemon);
         }
     }
 }

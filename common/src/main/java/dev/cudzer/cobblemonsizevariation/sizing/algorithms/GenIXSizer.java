@@ -26,6 +26,7 @@ public class GenIXSizer implements ISizer{
         this.sizeDefinition = definition;
         minSizeModifier = Float.parseFloat(this.sizeDefinition.getMinSizeModifier());
         maxSizeModifier = Float.parseFloat(this.sizeDefinition.getMaxSizeModifier());
+        dev.cudzer.cobblemonsizevariation.sizing.SizeAssignment.validateRange(minSizeModifier, maxSizeModifier);
     }
 
     @Override
@@ -33,12 +34,12 @@ public class GenIXSizer implements ISizer{
         float result = 0;
         if(ModConfig.biasSizeTowardAverage){
             for(int i = 0; i < 3; i++){
-                int value = (RNG.nextInt(0, 255));
+                int value = (RNG.nextInt(0, 256));
                 result += (minSizeModifier + ((float) value / 255) * (maxSizeModifier - minSizeModifier)) / 3;
             }
         }
         else {
-            int value = RNG.nextInt(0, 255);
+            int value = RNG.nextInt(0, 256);
             result = minSizeModifier + ((float) value / 255) * (maxSizeModifier - minSizeModifier);
         }
         return result;
@@ -46,15 +47,16 @@ public class GenIXSizer implements ISizer{
 
     @Override
     public float getSize(float min, float max) {
+        dev.cudzer.cobblemonsizevariation.sizing.SizeAssignment.validateRange(min, max);
         float result = 0;
         if(ModConfig.biasSizeTowardAverage){
             for(int i = 0; i < 3; i++){
-                int value = RNG.nextInt(0, 255);
+                int value = RNG.nextInt(0, 256);
                 result += (min + ((float) value / 255) * (max - min)) / 3;
             }
         }
         else {
-            int value = RNG.nextInt(0, 255);
+            int value = RNG.nextInt(0, 256);
             result = min + ((float) value / 255) * (max - min);
         }
         return result;
