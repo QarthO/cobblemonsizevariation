@@ -11,7 +11,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.cudzer.cobblemonsizevariation.CobblemonSizeVariation;
 import dev.cudzer.cobblemonsizevariation.config.ConfigKey;
 import dev.cudzer.cobblemonsizevariation.config.ModConfig;
-import dev.cudzer.cobblemonsizevariation.network.SizeChangedPacket;
+import dev.cudzer.cobblemonsizevariation.sizing.ServerSizeService;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -76,9 +76,8 @@ public class ChangeSizeCommand {
             for (Pokemon targetPokemon : party.toGappyList()){
                 if(targetPokemon == null) continue;
                 float sizeModifier = CobblemonSizeVariation.SIZER.getSize();
-                targetPokemon.setScaleModifier(sizeModifier);
+                ServerSizeService.setSize(targetPokemon, sizeModifier);
 
-                CobblemonSizeVariation.platform.getNetworkManager().sendPacketToPlayer(targetPlayer, new SizeChangedPacket(() -> targetPokemon, (double)sizeModifier));
             }
             context.getSource().sendSuccess(() -> Component.literal(String.format("The size of %s's team has been randomized",targetPlayer.getName().getString())), true);
             return 0;
@@ -105,9 +104,8 @@ public class ChangeSizeCommand {
                 for (Pokemon targetPokemon : party.toGappyList()){
                     if(targetPokemon == null) continue;
                     float sizeModifier = CobblemonSizeVariation.SIZER.getSize();
-                    targetPokemon.setScaleModifier(sizeModifier);
+                    ServerSizeService.setSize(targetPokemon, sizeModifier);
 
-                    CobblemonSizeVariation.platform.getNetworkManager().sendPacketToPlayer(targetPlayer, new SizeChangedPacket(() -> targetPokemon, (double)sizeModifier));
                 }
                 context.getSource().sendSuccess(() -> Component.literal("The size of your team has been randomized"), true);
                 return 0;
@@ -231,17 +229,13 @@ public class ChangeSizeCommand {
 
         if(targetPokemon != null){
             if(getPartySlots().contains(pokemon)){
-                targetPokemon.setScaleModifier(size);
+                ServerSizeService.setSize(targetPokemon, size);
                 context.getSource().sendSuccess(() -> Component.literal(success), true);
-                Pokemon finalTargetPokemon = targetPokemon;
-                CobblemonSizeVariation.platform.getNetworkManager().sendPacketToPlayer(player, new SizeChangedPacket(() -> finalTargetPokemon, (double)size));
                 return 0;
             }
             else {
-                targetPokemon.setScaleModifier(size);
+                ServerSizeService.setSize(targetPokemon, size);
                 context.getSource().sendSuccess(() -> Component.literal(success), true);
-                Pokemon finalTargetPokemon1 = targetPokemon;
-                CobblemonSizeVariation.platform.getNetworkManager().sendPacketToPlayer(player, new SizeChangedPacket(() -> finalTargetPokemon1, (double)size));
                 return 0;
             }
         }

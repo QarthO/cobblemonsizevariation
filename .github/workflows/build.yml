@@ -1,0 +1,57 @@
+name: Build JAR
+
+on:
+  push:
+    branches: [size_variation_1.4, feat/server-only]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build and test Fabric 1.21.1 JAR
+        run: |
+          bash gradlew clean build --no-daemon --console=plain
+          python3 scripts/verify_server_jar.py
+      - name: Name JAR with commit SHA
+        id: jar
+        run: |
+          python3 - <<'PYTHON'
+          import hashlib, os, pathlib, shutil, subprocess
+          source, = pathlib.Path('build/libs').glob('*.jar')
+          sha = subprocess.check_output(['git', 'rev-parse', '--short=7', 'HEAD'], text=True).strip()
+          target = pathlib.Path(f'build/artifacts/cobblemon-size-server-fabric-1.21.1-{sha}.jar')
+          target.parent.mkdir(parents=True, exist_ok=True)
+          shutil.copyfile(source, target)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'path={target}\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write(f'Built **{target.name}**\n\nSHA-256: `{hashlib.sha256(target.read_bytes()).hexdigest()}`\n')
+          PYTHON
+      - uses: actions/upload-artifact@v7
+        with:
+          path: ${{ steps.jar.outputs.path }}
+          archive: false
+          if-no-files-found: error
+          retention-days: 30

@@ -16,7 +16,12 @@ import java.util.*;
  * Loads and caches custom Pokémon size definitions from data/custom_sizes/.
  * Builds both a file map and a species map
  */
-public class CustomSizeDataManager extends SimpleJsonResourceReloadListener {
+public class CustomSizeDataManager extends SimpleJsonResourceReloadListener implements net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener {
+    @Override
+    public ResourceLocation getFabricId() {
+        return CobblemonSizeVariation.cobblemonSizeResource("custom_sizes");
+    }
+
     private static final Gson GSON = new Gson();
 
     protected static Map<ResourceLocation, PokemonSize> data = new HashMap<>();
