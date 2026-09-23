@@ -35,6 +35,7 @@ public final class CobblemonSizeVariation {
         dependencyChecker.checkDependencies();
 
         ModConfig.init(platform.getConfigDirectory());
+        dev.cudzer.cobblemonsizevariation.config.SizeMessages.init(platform.getConfigDirectory());
         sizeDataManager = new SizeDataManager();
         sizeDataManager.init();
         SIZER = getSizer();
@@ -44,6 +45,7 @@ public final class CobblemonSizeVariation {
 
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher){
         ChangeSizeCommand.registerCommand(dispatcher);
+        dev.cudzer.cobblemonsizevariation.command.CheckPokemonSizeCommand.register(dispatcher);
     }
 
     private static ISizer getSizer(){

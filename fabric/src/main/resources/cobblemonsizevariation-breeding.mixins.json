@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "dev.cudzer.cobblemonsizevariation.compat.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "dev.cudzer.cobblemonsizevariation.compat.BreedingMixinPlugin",
+  "mixins": [
+    "BreedingParentsMixin",
+    "BreedingHatchMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

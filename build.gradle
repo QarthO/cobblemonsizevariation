@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'dev.cudzer'
-version = '1.4.0+server.1'
+version = '1.4.0+server.4'
 base { archivesName = 'CobblemonSizeVariation-fabric-1.21.1' }
 
 repositories {
