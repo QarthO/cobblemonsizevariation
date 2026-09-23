@@ -59,11 +59,11 @@ public final class ServerSmokeTests implements ModInitializer {
             check(dispatcher.execute("checkpokemonsize 3", source) == 1, "public command failed");
             check(messages.size() == 1, "private response missing");
             String text = messages.getFirst().getString();
-            check(text.contains("1.350×") && text.contains("135.0%") && text.contains("min 0.200×") && text.contains("max 2.000×"), "wrong size/range output: " + text);
+            check(text.contains("1.35×") && text.contains("135%") && text.contains("Wild 0.2–2×"), "wrong size/range output: " + text);
             check(messages.getFirst().getStyle().getColor() != null, "missing colored output");
             check(before.equals(pokemon.saveToNBT(server.registryAccess(), new net.minecraft.nbt.CompoundTag())), "inspection changed Pokemon data");
             check(dispatcher.execute("checkpokemonsize 1", source) == 0, "empty slot accepted");
-            for (String invalid : java.util.List.of("checkpokemonsize 0", "checkpokemonsize 7", "checkpokemonsize 3 otherPlayer", "pokesizer self Slot3 2")) {
+            for (String invalid : java.util.List.of("checkpokemonsize 0", "checkpokemonsize 7", "checkpokemonsize 3 otherPlayer", "pokesizer self Slot3 2", "pokemonsize reload")) {
                 boolean rejected = false;
                 try { dispatcher.execute(invalid, source); } catch (com.mojang.brigadier.exceptions.CommandSyntaxException expected) { rejected = true; }
                 check(rejected, "invalid/privileged command accepted: " + invalid);
@@ -73,11 +73,42 @@ public final class ServerSmokeTests implements ModInitializer {
             check(messages.getLast().getString().contains("Unclassified"), "missing category-gap fallback");
             SpeciesOverride.set(true);
             dispatcher.execute("checkpokemonsize 3", source);
-            check(messages.getLast().getString().contains("min 0.800× · max 0.800×"), "command ignored species override");
+            check(messages.getLast().getString().contains("Wild 0.8–0.8×"), "command ignored species override");
             SpeciesOverride.set(false);
+            checkMessageReload(server, source);
             System.out.println("CSV PUBLIC COMMAND: PASS (permission 0, slot 3, colored private output, range, read-only NBT, invalid slots, empty slot, editing denied, category gap)");
         } catch (com.mojang.brigadier.exceptions.CommandSyntaxException error) { throw new RuntimeException(error); }
         finally { party.remove(pokemon); }
+    }
+
+    private static void checkMessageReload(MinecraftServer server, net.minecraft.commands.CommandSourceStack source) {
+        Path path = dev.cudzer.cobblemonsizevariation.CobblemonSizeVariation.platform.getConfigDirectory()
+            .resolve("cobblemonsizevariation/messages.json");
+        var dispatcher = server.getCommands().getDispatcher();
+        String original = null;
+        try {
+            original = Files.readString(path);
+            var json = com.google.gson.JsonParser.parseString(original).getAsJsonObject();
+            var lines = new com.google.gson.JsonArray(); lines.add("Custom {pokemon}: {scale}×"); json.add("lines", lines);
+            json.getAsJsonObject("colors").addProperty("text", "#123456");
+            Files.writeString(path, json.toString());
+            check(dispatcher.execute("pokemonsize reload", source.withPermission(2)) == 1, "operator reload failed");
+            var rendered = dev.cudzer.cobblemonsizevariation.command.CheckPokemonSizeCommand.describe(create(), 1);
+            check(rendered.getString().startsWith("Custom ") && !rendered.getString().contains("\n"), "new layout not applied");
+            check(rendered.getStyle().getColor().getValue() == 0x123456, "new color not applied");
+            for (String invalid : java.util.List.of("{bad json", json.toString().replace("#123456", "not-a-color"), json.toString().replace("{scale}", "{typo}"))) {
+                Files.writeString(path, invalid);
+                check(dispatcher.execute("pokemonsize reload", source.withPermission(2)) == 0, "invalid configuration accepted");
+                check(dev.cudzer.cobblemonsizevariation.command.CheckPokemonSizeCommand.describe(create(), 1).getString().startsWith("Custom "), "invalid reload replaced working layout");
+            }
+            System.out.println("CSV MESSAGE RELOAD: PASS (operator reload, custom text/color, malformed JSON/color/placeholder rollback)");
+        } catch (Exception error) { throw new RuntimeException(error); }
+        finally {
+            if (original != null) try {
+                Files.writeString(path, original);
+                dev.cudzer.cobblemonsizevariation.config.SizeMessages.reload();
+            } catch (Exception error) { throw new RuntimeException(error); }
+        }
     }
 
     private static void checkBreeding(MinecraftServer server) {

@@ -10,9 +10,10 @@ import dev.cudzer.cobblemonsizevariation.data.CustomSizeDataManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
 import java.util.Locale;
+import java.util.Map;
+import dev.cudzer.cobblemonsizevariation.config.SizeMessages;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -22,13 +23,24 @@ public final class CheckPokemonSizeCommand {
     private CheckPokemonSizeCommand() {}
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        dispatcher.register(literal("pokemonsize").requires(source -> source.hasPermission(2))
+            .then(literal("reload").executes(context -> {
+                try {
+                    SizeMessages.reload();
+                    context.getSource().sendSuccess(SizeMessages::reloadSuccess, false);
+                    return 1;
+                } catch (Exception error) {
+                    context.getSource().sendFailure(SizeMessages.reloadFailure(error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage()));
+                    return 0;
+                }
+            })));
         dispatcher.register(literal("checkpokemonsize")
             .then(argument("slot", IntegerArgumentType.integer(1, 6)).executes(context -> {
                 var player = context.getSource().getPlayerOrException();
                 int slot = IntegerArgumentType.getInteger(context, "slot");
                 Pokemon pokemon = PlayerExtensionsKt.party(player).get(slot - 1);
                 if (pokemon == null) {
-                    context.getSource().sendFailure(Component.literal("There is no Pokémon in party slot " + slot + "."));
+                    context.getSource().sendFailure(SizeMessages.emptySlot(slot));
                     return 0;
                 }
                 context.getSource().sendSuccess(() -> describe(pokemon, slot), false);
@@ -43,18 +55,16 @@ public final class CheckPokemonSizeCommand {
         var custom = CustomSizeDataManager.getCustomSizeFile(pokemon.getSpecies());
         float min = custom == null ? sizer.getMinSizeModifier() : custom.getMinSize();
         float max = custom == null ? sizer.getMaxSizeModifier() : custom.getMaxSize();
-        // Custom category definitions may contain gaps. Do not invent a category or fail inspection.
-        MutableComponent label = Component.literal(category == null ? "Unclassified" : category.name());
-        if (category != null) {
-            TextColor color = TextColor.parseColor(category.color()).result().orElse(TextColor.fromLegacyFormat(ChatFormatting.WHITE));
-            label.withStyle(style -> style.withColor(color));
-        }
-        return Component.literal("Pokémon size · Slot " + slot + " · ").withStyle(ChatFormatting.GOLD)
-            .append(pokemon.getDisplayName(false).copy().withStyle(ChatFormatting.YELLOW))
-            .append(Component.literal("\nSize: ").withStyle(ChatFormatting.GRAY)).append(label)
-            .append(Component.literal(String.format(Locale.ROOT, " · %.3f× (%.1f%% of normal scale)", scale, scale * 100)).withStyle(ChatFormatting.AQUA))
-            .append(Component.literal("\nCurrent wild roll range: ").withStyle(ChatFormatting.GRAY))
-            .append(Component.literal(String.format(Locale.ROOT, "min %.3f× · max %.3f×", min, max)).withStyle(ChatFormatting.GREEN))
-            .append(Component.literal(String.format(Locale.ROOT, "\nWild size roll chance: %.1f%% · Otherwise normal scale (1×).", ModConfig.sizeModificationChance * 100)).withStyle(ChatFormatting.DARK_GRAY));
+        TextColor categoryColor = category == null ? TextColor.fromLegacyFormat(ChatFormatting.WHITE)
+            : TextColor.parseColor(category.color()).result().orElse(TextColor.fromLegacyFormat(ChatFormatting.WHITE));
+        return SizeMessages.render(Map.of(
+            "pokemon", pokemon.getDisplayName(false), "slot", Component.literal(String.valueOf(slot)),
+            "category", Component.literal(category == null ? SizeMessages.unclassified() : category.name()),
+            "scale", number(scale, 3), "percent", number(scale * 100, 1),
+            "min", number(min, 3), "max", number(max, 3), "chance", number(ModConfig.sizeModificationChance * 100, 1)), categoryColor);
+    }
+
+    private static Component number(float value, int precision) {
+        return Component.literal(String.format(Locale.ROOT, "%." + precision + "f", value).replaceFirst("\\.?0+$", ""));
     }
 }

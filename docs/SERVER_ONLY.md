@@ -167,3 +167,55 @@ random sizing policy and the new parental inheritance policy.
 M23 configuration was inspected read-only: Basic algorithm, wild size chance
 0.5, average bias off, Cobbreeding size compatibility enabled. Its existing
 settings were not modified.
+
+
+### M23 deployment — 2026-09-23
+
+Deployed size server.2 and optimizer internal.11 to the original M23 test server
+(`7d3bce786c454df7b61ed22080128a2a7d3bce78`). Backup
+`785ac525-09f9-4774-a075-fc8b2751ba06` was available before replacement.
+Downloaded both remote JARs and verified SHA-256 against the tested builds.
+Restart completed at 16:21:32 UTC; QarthO joined afterward. Both versions loaded,
+Cobbreeding compatibility enabled, inheritance config true with influence 0.75.
+No new ERROR messages relative to the pre-deployment log. Initial login produced
+a low-TPS emergency warning; player acceptance testing is still in progress.
+Log snapshot: `/tmp/m23-size2-startup.log`.
+
+
+## Reloadable compact text (server.3)
+
+Edit `config/cobblemonsizevariation/messages.json`, then run `/pokemonsize reload`
+(OP level 2, also available from console). This reloads presentation only; sizing,
+breeding and permission config still use their existing loading rules. Installing
+server.3 requires a restart once; subsequent message edits do not.
+
+Default output, with token-specific colors and insignificant zeroes omitted:
+
+```text
+Bulbasaur · #3 · Big
+1.35× (135% normal) · Wild 0.2–2×
+Wild roll 50% · Otherwise 1×
+```
+
+The `lines` array controls layout/order and can omit or repeat fields. Available
+placeholders: `{pokemon}`, `{slot}`, `{category}`, `{scale}`, `{percent}`, `{min}`,
+`{max}`, `{chance}`. Numeric values have no units; include × or % in the template.
+`{pokemon}` retains the normal translated name/nickname component.
+
+`colors` contains `text` and each placeholder name; colors use `#RRGGBB`.
+`category` also accepts `auto`, using the sizing algorithm's category color.
+Text is literal, not MiniMessage or ampersand formatting. Keep all color keys,
+even if your layout omits a placeholder.
+
+`emptySlot` supports `{slot}`; `reloadFailure` supports `{error}`. `reloadSuccess`
+and `unclassified` are plain text. Category names themselves come from the
+existing sizing definitions. Invalid JSON, colors, missing fields or unknown
+placeholders reject the whole reload and retain the last working format.
+The error is sent to the command caller; no player broadcast or Pokémon change
+occurs. Public inspection remains `/checkpokemonsize <1–6>`.
+
+Server.3 verification: disposable Fabric/Cobblemon runtime passed permission-zero
+inspection, operator-only reload, immediate layout/color updates, and retention
+of the last working layout after malformed JSON, invalid colors and unknown
+placeholders. Existing sizing smoke checks passed. Evidence:
+`/tmp/size-messages-runtime.log`.

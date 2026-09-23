@@ -35,6 +35,7 @@ public final class CobblemonSizeVariation {
         dependencyChecker.checkDependencies();
 
         ModConfig.init(platform.getConfigDirectory());
+        dev.cudzer.cobblemonsizevariation.config.SizeMessages.init(platform.getConfigDirectory());
         sizeDataManager = new SizeDataManager();
         sizeDataManager.init();
         SIZER = getSizer();
