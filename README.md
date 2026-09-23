@@ -6,7 +6,8 @@ Cobblemon modpack; they do **not** install Size Variations.
 
 - Random sizes for naturally spawned, Poké Snack, starter and fossil Pokémon.
 - Basic and Gen IX sampling, size bounds, chance, bias and species overrides.
-- Public, read-only `/checkpokemonsize <1–6>` with colored scale, category and current wild bounds.
+- Public, read-only `/checkpokemonsize <1–6>` with single-line size and a hover range.
+- Reloadable text, colors and hover width through operator `/pokemonsize reload`.
 - Parent-influenced offspring sizes with optional Cobbreeding 2.2.2 integration.
 - Operator `/pokesizer` commands and shoulder/riding size limits.
 - Persistent assignments: duplicate events do not reroll a Pokémon or retry a
@@ -16,6 +17,11 @@ Cobblemon modpack; they do **not** install Size Variations.
 
 Essence items/recipes and the client PC/summary size labels are removed.
 This fork builds **Fabric only**. Upstream's NeoForge target is not maintained here.
+
+The default response is `Bulbasaur · Big (1.35)`. Hover to see Min/Max and the
+current value positioned along the range. Hover is enabled by default at 160
+pixels, aligned for Minecraft's default font. Existing message templates are
+preserved; new installations get this layout automatically.
 
 See [installation, commands and testing](docs/SERVER_ONLY.md).
 
