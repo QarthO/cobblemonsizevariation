@@ -264,3 +264,9 @@ for the one-line text, native hover content, equal 160px header/range width,
 species overrides, normal-player access and hot reload/invalid-edit retention.
 No real rendering client was used; live player visual review remains appropriate,
 especially with font resource packs.
+
+Server.4 deployed to M23 with the single-line template after backup
+`2fa454db-eb43-440f-a600-ae8fbf1f3801`. Remote JAR hash matched the release:
+`98ba8d5efa2f9057a1c09614aa89862261c222f40725d861a952ef7c0084f0ce`.
+Startup completed 2026-09-23 16:41:57 UTC; live message reload succeeded at
+16:42:23 UTC. Player hover rendering review remains pending.
