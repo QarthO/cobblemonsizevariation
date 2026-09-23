@@ -59,7 +59,12 @@ public final class ServerSmokeTests implements ModInitializer {
             check(dispatcher.execute("checkpokemonsize 3", source) == 1, "public command failed");
             check(messages.size() == 1, "private response missing");
             String text = messages.getFirst().getString();
-            check(text.contains("1.35×") && text.contains("135%") && text.contains("Wild 0.2–2×"), "wrong size/range output: " + text);
+            check(text.contains("(1.35)") && !text.contains("\n") && !text.contains("Wild") && !text.contains("×") && !text.contains("#3"), "wrong single-line output: " + text);
+            var tooltip = messages.getFirst().getStyle().getHoverEvent().getValue(net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT);
+            check(tooltip != null && tooltip.getString().contains("1.35") && tooltip.getString().contains("Min") && tooltip.getString().contains("Max"), "range hover missing");
+            String[] rows = tooltip.getString().split("\n");
+            check(dev.cudzer.cobblemonsizevariation.command.SizeRangeTooltip.width(rows[0]) == 160
+                && dev.cudzer.cobblemonsizevariation.command.SizeRangeTooltip.width(rows[1]) == 160, "tooltip pixel alignment incorrect");
             check(messages.getFirst().getStyle().getColor() != null, "missing colored output");
             check(before.equals(pokemon.saveToNBT(server.registryAccess(), new net.minecraft.nbt.CompoundTag())), "inspection changed Pokemon data");
             check(dispatcher.execute("checkpokemonsize 1", source) == 0, "empty slot accepted");
@@ -73,7 +78,7 @@ public final class ServerSmokeTests implements ModInitializer {
             check(messages.getLast().getString().contains("Unclassified"), "missing category-gap fallback");
             SpeciesOverride.set(true);
             dispatcher.execute("checkpokemonsize 3", source);
-            check(messages.getLast().getString().contains("Wild 0.8–0.8×"), "command ignored species override");
+            check(messages.getLast().getStyle().getHoverEvent().getValue(net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT).getString().contains("0.8"), "hover ignored species override");
             SpeciesOverride.set(false);
             checkMessageReload(server, source);
             System.out.println("CSV PUBLIC COMMAND: PASS (permission 0, slot 3, colored private output, range, read-only NBT, invalid slots, empty slot, editing denied, category gap)");

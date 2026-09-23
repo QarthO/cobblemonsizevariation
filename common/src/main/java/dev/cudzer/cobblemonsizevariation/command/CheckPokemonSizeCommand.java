@@ -61,7 +61,7 @@ public final class CheckPokemonSizeCommand {
             "pokemon", pokemon.getDisplayName(false), "slot", Component.literal(String.valueOf(slot)),
             "category", Component.literal(category == null ? SizeMessages.unclassified() : category.name()),
             "scale", number(scale, 3), "percent", number(scale * 100, 1),
-            "min", number(min, 3), "max", number(max, 3), "chance", number(ModConfig.sizeModificationChance * 100, 1)), categoryColor);
+            "min", number(min, 3), "max", number(max, 3), "chance", number(ModConfig.sizeModificationChance * 100, 1)), categoryColor, scale, min, max);
     }
 
     private static Component number(float value, int precision) {

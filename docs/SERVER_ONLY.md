@@ -226,3 +226,41 @@ Deployed server.3 to M23 on 2026-09-23 after backup
 Startup completed at 16:30:03 UTC; console `pokemonsize reload` succeeded at
 16:30:29 UTC. Existing optimizer Cobbreeding-display linkage warning remains;
 no new ERROR messages relative to the previous boot. Config generated on server.
+
+
+## Single-line output and hover range (server.4)
+
+Default chat: `{pokemon} · {category} ({scale})`. No slot, roll chance or multiplier
+symbol is shown. Category is the actual configured category, not a fixed label.
+The entire message has a native SHOW_TEXT hover tooltip, requiring no client addon.
+
+The tooltip places Min/Max at the ends of a dotted range and inserts the current
+number at its relative position. Current, minimum and maximum colors reuse
+`scale`, `min`, `max` from `messages.json`. Pixel advances were measured from
+Minecraft 1.21.1's vanilla default bitmap font: digits 6px, period 2px, space 4px,
+Min 14px and Max 18px. The tooltip explicitly uses `minecraft:default`, with bold
+and italic disabled. This is pixel-based alignment for that font, not monospace
+character padding; custom font resource packs/Force Unicode Font can alter it.
+
+Optional, reloadable configuration:
+
+```json
+"hover": { "enabled": true, "widthPixels": 160 }
+```
+
+Width must be a multiple of four between 80 and 320. The range expands if needed
+for unusually long numbers. Placement rounds to a 2px dot increment and reserves
+room for labels at either end to avoid overlap. A current value equal to a displayed
+bound highlights that endpoint instead of repeating it. Fixed ranges are handled
+without division by zero; out-of-range values display an explicit note.
+
+Existing message files retain their templates; missing hover settings use the new
+default. M23's lines are explicitly updated to the requested single-line layout.
+`/pokemonsize reload` remains presentation-only. Installing the hover renderer
+requires one server restart; later template/color/width edits use reload.
+
+Server.4 verification: 12 unit tests passed. Local Fabric smoke tests passed
+for the one-line text, native hover content, equal 160px header/range width,
+species overrides, normal-player access and hot reload/invalid-edit retention.
+No real rendering client was used; live player visual review remains appropriate,
+especially with font resource packs.

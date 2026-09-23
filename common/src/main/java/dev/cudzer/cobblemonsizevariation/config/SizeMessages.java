@@ -5,6 +5,8 @@ import dev.cudzer.cobblemonsizevariation.CobblemonSizeVariation;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.HoverEvent;
+import dev.cudzer.cobblemonsizevariation.command.SizeRangeTooltip;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,17 +21,16 @@ public final class SizeMessages {
         Map.entry("text", "#AAAAAA"), Map.entry("pokemon", "#FFFF55"), Map.entry("slot", "#AAAAAA"),
         Map.entry("category", "auto"), Map.entry("scale", "#55FFFF"), Map.entry("percent", "#55FFFF"),
         Map.entry("min", "#55FF55"), Map.entry("max", "#55FF55"), Map.entry("chance", "#FFFFFF"));
-    private static final Format DEFAULT = new Format(List.of(
-        "{pokemon} · #{slot} · {category}",
-        "{scale}× ({percent}% normal) · Wild {min}–{max}×",
-        "Wild roll {chance}% · Otherwise 1×"), DEFAULT_COLORS,
+    private static final Hover DEFAULT_HOVER = new Hover(true, 160);
+    public record Hover(boolean enabled, int widthPixels) {}
+    private static final Format DEFAULT = new Format(List.of("{pokemon} · {category} ({scale})"), DEFAULT_COLORS,
         "No Pokémon in slot {slot}.", "Pokémon size text reloaded.",
-        "Could not reload size text: {error}. Previous text retained.", "Unclassified");
+        "Could not reload size text: {error}. Previous text retained.", "Unclassified", DEFAULT_HOVER);
     private static Format active = DEFAULT;
     private static Path file;
 
     public record Format(List<String> lines, Map<String, String> colors, String emptySlot,
-                         String reloadSuccess, String reloadFailure, String unclassified) {}
+                         String reloadSuccess, String reloadFailure, String unclassified, Hover hover) {}
     private SizeMessages() {}
 
     public static void init(Path configDirectory) {
@@ -61,8 +62,11 @@ public final class SizeMessages {
             if (color == null || !(color.matches("#[0-9a-fA-F]{6}") || key.equals("category") && color.equals("auto")))
                 throw new IllegalArgumentException("invalid color for " + key + " (use #RRGGBB)");
         }
+        Hover hover = candidate.hover() == null ? DEFAULT_HOVER : candidate.hover();
+        if (hover.widthPixels() < 80 || hover.widthPixels() > 320 || hover.widthPixels() % 4 != 0)
+            throw new IllegalArgumentException("hover.widthPixels must be 80–320 and a multiple of 4");
         active = new Format(List.copyOf(candidate.lines()), Map.copyOf(candidate.colors()), candidate.emptySlot(),
-            candidate.reloadSuccess(), candidate.reloadFailure(), candidate.unclassified());
+            candidate.reloadSuccess(), candidate.reloadFailure(), candidate.unclassified(), hover);
     }
 
     private static void validate(String template, Set<String> allowed) {
@@ -86,7 +90,7 @@ public final class SizeMessages {
         return output.append(template.substring(end));
     }
 
-    public static Component render(Map<String, Component> values, TextColor categoryColor) {
+    public static Component render(Map<String, Component> values, TextColor categoryColor, float scale, float min, float max) {
         var format = active;
         MutableComponent output = Component.empty().withStyle(s -> s.withColor(color(format.colors().get("text"))));
         for (int i = 0; i < format.lines().size(); i++) {
@@ -100,6 +104,12 @@ public final class SizeMessages {
                 end = matcher.end();
             }
             output.append(line.substring(end));
+        }
+        if (format.hover().enabled()) {
+            var tooltip = SizeRangeTooltip.create(scale, min, max, values, format.hover().widthPixels(),
+                color(format.colors().get("text")), color(format.colors().get("scale")),
+                color(format.colors().get("min")), color(format.colors().get("max")));
+            output.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip)));
         }
         return output;
     }
