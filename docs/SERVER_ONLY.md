@@ -219,3 +219,10 @@ inspection, operator-only reload, immediate layout/color updates, and retention
 of the last working layout after malformed JSON, invalid colors and unknown
 placeholders. Existing sizing smoke checks passed. Evidence:
 `/tmp/size-messages-runtime.log`.
+
+Deployed server.3 to M23 on 2026-09-23 after backup
+`ebf3c209-4953-44fd-a04e-11d4c0b98914`. Remote SHA-256 matched
+`1b434c33c7c1e2d3e248111c1dc7a2f92270fede775d5024ad9e25b909100a2f`.
+Startup completed at 16:30:03 UTC; console `pokemonsize reload` succeeded at
+16:30:29 UTC. Existing optimizer Cobbreeding-display linkage warning remains;
+no new ERROR messages relative to the previous boot. Config generated on server.
