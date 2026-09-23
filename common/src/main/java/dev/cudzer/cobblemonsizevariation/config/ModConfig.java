@@ -15,6 +15,9 @@ import java.util.HashMap;
 public class ModConfig {
     private static final String configFileLoc = CobblemonSizeVariation.MOD_ID + "/config.json";
 
+    public static boolean breedingSizeInheritance;
+    public static float breedingParentInfluence;
+
     public static float preventShoulderMountSize;
     public static float preventRidingMinSize;
     public static float preventRidingMaxSize;
@@ -55,6 +58,8 @@ public class ModConfig {
     }
 
     private static void addDefaultFields(JsonObject defaultConfig){
+        defaultConfig.addProperty("breedingSizeInheritance", true);
+        defaultConfig.addProperty("breedingParentInfluence", 0.75F);
         defaultConfig.addProperty(ConfigKey.SIZE_MODIFICATION_CHANCE, 0.5F);
         defaultConfig.addProperty(ConfigKey.PREVENT_SHOULDER_MOUNT_SIZE, 1.5F);
         defaultConfig.addProperty(ConfigKey.PREVENT_RIDING_MIN_SIZE, 0.3F);
@@ -85,6 +90,10 @@ public class ModConfig {
     }
 
     private static void loadConfig(JsonObject finalConfiguration){
+        breedingSizeInheritance = finalConfiguration.get("breedingSizeInheritance").getAsBoolean();
+        breedingParentInfluence = finalConfiguration.get("breedingParentInfluence").getAsFloat();
+        if (!Float.isFinite(breedingParentInfluence) || breedingParentInfluence < 0 || breedingParentInfluence > 1)
+            throw new IllegalArgumentException("breedingParentInfluence must be between 0 and 1");
         sizeModificationChance = finalConfiguration.get(ConfigKey.SIZE_MODIFICATION_CHANCE).getAsFloat();
         if (!Float.isFinite(sizeModificationChance) || sizeModificationChance < 0 || sizeModificationChance > 1) {
             throw new IllegalArgumentException("sizeModificationChance must be between 0 and 1");

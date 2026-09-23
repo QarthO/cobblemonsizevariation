@@ -44,6 +44,7 @@ public final class CobblemonSizeVariation {
 
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher){
         ChangeSizeCommand.registerCommand(dispatcher);
+        dev.cudzer.cobblemonsizevariation.command.CheckPokemonSizeCommand.register(dispatcher);
     }
 
     private static ISizer getSizer(){

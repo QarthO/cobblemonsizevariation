@@ -6,7 +6,9 @@ Cobblemon modpack; they do **not** install Size Variations.
 
 - Random sizes for naturally spawned, Poké Snack, starter and fossil Pokémon.
 - Basic and Gen IX sampling, size bounds, chance, bias and species overrides.
-- `/pokesizer` commands and shoulder/riding size limits.
+- Public, read-only `/checkpokemonsize <1–6>` with colored scale, category and current wild bounds.
+- Parent-influenced offspring sizes with optional Cobbreeding 2.2.2 integration.
+- Operator `/pokesizer` commands and shoulder/riding size limits.
 - Persistent assignments: duplicate events do not reroll a Pokémon or retry a
   failed chance roll. Existing non-default sizes from other mods are preserved.
 - Live size changes use Cobblemon's native tracked entity data; party/PC updates

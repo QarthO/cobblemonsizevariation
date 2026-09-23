@@ -10,7 +10,11 @@ with zipfile.ZipFile(jar) as archive:
     metadata = json.loads(archive.read('fabric.mod.json'))
     assert metadata['environment'] == 'server'
     assert metadata['entrypoints'] == {'main': ['dev.cudzer.cobblemonsizevariation.fabric.CobblemonSizeVariationFabric']}
-    assert 'mixins' not in metadata
+    assert metadata['mixins'] == ['cobblemonsizevariation-breeding.mixins.json']
+    mixins = json.loads(archive.read(metadata['mixins'][0]))
+    assert 'client' not in mixins
+    assert mixins['mixins'] == ['BreedingParentsMixin', 'BreedingHatchMixin']
+    assert mixins['plugin'] == 'dev.cudzer.cobblemonsizevariation.compat.BreedingMixinPlugin'
     assert 'cobblemon' in metadata['depends']
     assert not any('/recipe/' in n or n.startswith('assets/') or '/smoke/' in n for n in names)
     for name in names:

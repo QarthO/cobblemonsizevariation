@@ -24,5 +24,8 @@
     "fabric-api": "*",
     "cobblemon": "~1.7.3",
     "fabric-language-kotlin": "*"
-  }
+  },
+  "mixins": [
+    "cobblemonsizevariation-breeding.mixins.json"
+  ]
 }
